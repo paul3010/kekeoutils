@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu Mots Outils CP</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f2f6ff;
+  margin: 0;
+  padding: 10px;
+}
+
+h1 {
+  font-size: 1.6em;
+}
+
+#progress {
+  font-size: 1.6em;
+  margin: 10px 0;
+  min-height: 40px;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.word {
+  background: #4CAF50;
+  color: white;
+  font-size: 1.6em;
+  padding: 25px;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.word:nth-child(2) { background:#ff9800; }
+.word:nth-child(3) { background:#2196f3; }
+.word:nth-child(4) { background:#e91e63; }
+
+button {
+  margin-top: 15px;
+  font-size: 1.2em;
+  padding: 15px 25px;
+  border-radius: 15px;
+  border: none;
+  background: #673ab7;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎧 Écoute et touche le bon mot</h1>
+
+<div id="progress"></div>
+
+<button onclick="replay()">🔁 Réécouter</button>
+
+<div id="grid"></div>
+
+<script>
+let motsOutils = [
+ "une","j’ai","mais","mon","l’","même","s’est","tous","sont","est",
+ "pour","contre","de","qui","sur","au","mes","ce","voici","près",
+ "tu","es","ici","ses","car","sans","dehors","en","des","avec",
+ "chez","le","à","son","toute","comme","maintenant","que","elle",
+ "les","très","et","bien","depuis","entre","assez","leurs","aussi",
+ "la","dans","tout à coup"
+];
+
+let totalMots = motsOutils.length;
+
+let bonneReponse = ["bravo.mp3","super.mp3"];
+let mauvaiseReponse = ["essaie_encore.mp3","reessaie.mp3"];
+
+let symboles = ["⭐","🍌","🍎"];
+let progression = [];
+
+let motActuel = "";
+let audioMot;
+
+function normalize(mot){
+  return mot.replace(/’/g,"_").replace(/ /g,"_");
+}
+
+function playAudio(src){
+  let a = new Audio(src);
+  a.play();
+}
+
+/* 🔢 Initialisation du compteur visuel */
+function initProgress(){
+  progression = [];
+  for(let i=0;i<totalMots;i++){
+    progression.push(symboles[Math.floor(Math.random()*symboles.length)]);
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  document.getElementById("progress").innerText = progression.join(" ");
+}
+
+function nouveauTour(){
+  if(motsOutils.length === 0){
+    document.body.innerHTML = "<h1>🎉 BRAVO ! TU AS TOUT TROUVÉ 🎉</h1>";
+    return;
+  }
+
+  let choix = [...motsOutils].sort(()=>0.5-Math.random()).slice(0,4);
+  motActuel = choix[Math.floor(Math.random()*choix.length)];
+
+  document.getElementById("grid").innerHTML = "";
+
+  choix.forEach(mot=>{
+    let div = document.createElement("div");
+    div.className = "word";
+    div.innerText = mot;
+    div.onclick = ()=>clic(mot);
+    document.getElementById("grid").appendChild(div);
+  });
+
+  audioMot = "audio/mots/" + normalize(motActuel) + ".mp3";
+  playAudio(audioMot);
+}
+
+function replay(){
+  playAudio(audioMot);
+}
+
+function clic(mot){
+  if(mot === motActuel){
+    playAudio("audio/bonne/" + bonneReponse[Math.floor(Math.random()*bonneReponse.length)]);
+    motsOutils = motsOutils.filter(m=>m!==motActuel);
+    progression.pop();           // ⭐🍌🍎 disparaît
+    updateProgress();
+    setTimeout(nouveauTour,1200);
+  } else {
+    playAudio("audio/mauvaise/" + mauvaiseReponse[Math.floor(Math.random()*mauvaiseReponse.length)]);
+  }
+}
+
+initProgress();
+nouveauTour();
+</script>
+
+</body>
+</html>
